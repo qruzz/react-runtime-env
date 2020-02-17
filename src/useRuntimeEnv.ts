@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { RuntimeEnvContext } from './RuntimeENVProvider';
+import { RuntimeEnvContext } from './RuntimeEnvProvider';
 
 export function useRuntimeEnv() {
 	const context = useContext(RuntimeEnvContext);
