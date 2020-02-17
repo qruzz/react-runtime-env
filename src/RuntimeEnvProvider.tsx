@@ -12,9 +12,7 @@ interface RuntimeEnvProviderProps {
 	configPath: string;
 }
 
-export const RuntimeEnvContext = React.createContext<RuntimeEnv | undefined>(
-	undefined
-);
+export const RuntimeEnvContext = React.createContext<RuntimeEnv>({});
 
 export function RuntimeEnvProvider({
 	children,
