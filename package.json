@@ -1,6 +1,6 @@
 {
 	"name": "react-runtime-env",
-	"version": "0.1.0",
+	"version": "0.0.1",
 	"description": "Zero dependency package for working with runtime environment variables in react",
 	"keywords": [
 		"javascript",
@@ -14,7 +14,8 @@
 	"types": "./lib/index.d.ts",
 	"scripts": {
 		"dev": "tsc --watch",
-		"build": "tsc"
+		"build": "tsc",
+		"test": "echo 0"
 	},
 	"directories": {
 		"src": "src",
