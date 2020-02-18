@@ -1,70 +1,64 @@
 import React from 'react';
 import { useCompare } from './useCompare';
 
-export interface RuntimeEnvironmentProps<T> {
-	defaultEnv: T;
-	configPath: string;
-	onError?: (error: Error) => void;
-}
+let RuntimeEnvContext: any = undefined;
 
-export interface RuntimeEnvProviderProps {
-	children: React.ReactNode;
-}
-
-export function configureRuntimeEnvironment<T>({
+export function RuntimeEnvProvider<T extends NodeJS.ProcessEnv>({
 	defaultEnv,
 	configPath,
 	onError,
-}: RuntimeEnvironmentProps<T>) {
-	const RuntimeEnvContext = React.createContext<T | undefined>(undefined);
+	children,
+}: {
+	defaultEnv: T;
+	configPath: string;
+	onError?: (error: Error) => void;
+	children: React.ReactNode;
+}) {
+	const [env, setEnv] = React.useState<T>(defaultEnv);
 
-	function RuntimeEnvProvider({ children }: RuntimeEnvProviderProps) {
-		const [env, setEnv] = React.useState<T>(defaultEnv);
+	RuntimeEnvContext = React.createContext<T>(defaultEnv);
 
-		const didEnvUpdate = useCompare(env);
+	const didEnvUpdate = useCompare(env);
 
-		React.useEffect(() => {
-			if (process.env.NODE_ENV !== 'development') {
-				configureRuntimeEnv<T>(configPath)
-					?.then(data =>
-						setEnv({
-							...data,
-							...process.env,
-						})
-					)
-					.catch(error => {
-						if (onError) {
-							onError(error);
-						} else {
-							throw new Error(error);
-						}
-					});
-			} else {
-				setEnv({
-					...env,
-					...process.env,
+	React.useEffect(() => {
+		if (process.env.NODE_ENV !== 'development') {
+			configureRuntimeEnv<T>(configPath)
+				?.then(data =>
+					setEnv({
+						...data,
+						...process.env,
+					})
+				)
+				.catch(error => {
+					if (onError) {
+						onError(error);
+					} else {
+						throw new Error(error);
+					}
 				});
-			}
-		}, [didEnvUpdate]);
-
-		return (
-			<RuntimeEnvContext.Provider value={env}>
-				{children}
-			</RuntimeEnvContext.Provider>
-		);
-	}
-
-	function useRuntimeEnv() {
-		const context = React.useContext(RuntimeEnvContext);
-
-		if (context === undefined) {
-			throw new Error('useRuntimeEnv must be used within a RuntimeEnvProvider');
+		} else {
+			setEnv({
+				...env,
+				...process.env,
+			});
 		}
+	}, [didEnvUpdate]);
 
-		return context;
+	return (
+		<RuntimeEnvContext.Provider value={env}>
+			{children}
+		</RuntimeEnvContext.Provider>
+	);
+}
+
+export function useRuntimeEnv<T>() {
+	const context = React.useContext<T>(RuntimeEnvContext as React.Context<T>);
+
+	if (context === undefined) {
+		throw new Error('useRuntimeEnv must be used within a RuntimeEnvProvider');
 	}
 
-	return { RuntimeEnvProvider, useRuntimeEnv };
+	return context;
 }
 
 function configureRuntimeEnv<T>(configPath: string): Promise<T> | null {
